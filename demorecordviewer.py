@@ -15,7 +15,6 @@ def askInstallDir():
     '''Opens a directory selection dialog. If demos folder is found it sets the installDirectory and recordingsDirectory respectively.'''
     installDirectory = str(QFileDialog.getExistingDirectory(window, "Select Star Trek Online install folder"))
     recordingsDirectory = installDirectory + "/Star Trek Online/Live/demos"
-    print(recordingsDirectory)
 
     if (recordingsDirectory):
         try:
@@ -25,8 +24,7 @@ def askInstallDir():
             print("The demorecord folder was not found")
             notFoundError.exec()
 
-#Create layout
-
+# Create layout for main window
 button = QPushButton("Find Game Directory")
 welcomeMessage = QLabel("Welcome to the DemoRecord Viewer")
 
@@ -36,7 +34,7 @@ mainLayout.addWidget(welcomeMessage)
 mainLayout.addWidget(button)
 button.clicked.connect(askInstallDir)
 
-# Begin Qt cycle
+# Create main window
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
@@ -52,15 +50,14 @@ class MainWindow(QMainWindow):
 window = MainWindow()
 
 # Create error window for later
-
 class Alert(QDialog):
     def __init__(self):
         super(Alert, self).__init__()
 
-# Create layout for directory not found error and set to dialog called notFoundError
+# Create layout for error window if directory not found
 notFoundError = Alert()
-
 notFoundErrorLayout = QVBoxLayout()
+
 alertText = QLabel("The demo recording folder was not found, please try selecting a different location.")
 alertButton = QPushButton("OK")
 alertButton.clicked.connect(notFoundError.close)
@@ -70,14 +67,12 @@ notFoundErrorLayout.addWidget(alertButton)
 
 notFoundError.setLayout(notFoundErrorLayout)
 
-#Attempt to find default paths for game 
+#Attempt to find default paths for game
 currentDrive = Path.home().drive
-print(currentDrive)
-
 possibleLocations = []
-
 possibleLocations.append(currentDrive + "\Program Files (x86)\Star Trek Online_en\Star Trek Online\Live\demos")
 
+# Iterate over possible locations to check if they exist
 for location in possibleLocations:
     thisLocation = Path(location)
     if thisLocation.exists():
@@ -85,8 +80,9 @@ for location in possibleLocations:
         print("Demo record folder found automatically!")
         label = QLabel("Demo record folder found. The location is " + str(installDirectory))
 
-
+# If install dir not found, open the dialog window to choose it
 if installDirectory == "":
     askInstallDir()
 
-sys.exit(app.exec_()) #Exit the application when app exec returns 0
+# Exit the application when last main window closed
+sys.exit(app.exec_())
