@@ -1,7 +1,8 @@
 from gettext import install
 from pathlib import Path
-from os import listdir
-from tkinter import filedialog
+from os import *
+from tkinter import X, filedialog
+from tkinter.ttk import Treeview
 from ui import *
 
 # Define functions
@@ -26,43 +27,79 @@ def scanDefaultDirs():
 def getRecordings():
     global recordingsDirectory
     recordingsDirectory = Path(str(installDirectory) + "\Star Trek Online\Live\demos")
-    print("Trying to access " + str(recordingsDirectory))
+
     try:
+        for widget in demo_list_frame.winfo_children():
+            widget.destroy()
         recordingsList = listdir(recordingsDirectory)
-        updateRecordingslist(recordingsList)
+        if (len(recordingsList) > 0):
+            createRecordingsTable(recordingsList)
+        else:
+            recordingsHeader = tk.Label (
+                text = "The folder was found, but no recordings exist.",
+                master = demo_list_frame
+            )
+            recordingsHeader.pack()
         return recordingsList
     except:
-        print("The demorecord folder was not found")
+        current_install_label.configure(text="Install location was not recognised, please try locating again.")
+        open_install_button.pack_forget()
         return None
 
 def askInstallDir(event=None):
     '''Opens a directory selection dialog. If demos folder is found it sets the installDirectory and recordingsDirectory respectively.'''
+
     global installDirectory
     installDirectory = filedialog.askdirectory()
     getRecordings()
 
-def updateRecordingslist(recordingsList):
-    recordingsHeader = tk.Label (
-        text = "The following recordings were found:",
-        master = demo_list_frame
-    )
-    recordingsHeader.pack()
-    for recording in recordingsList:
-        tk.Label(
-            text = recording,
-            master = demo_list_frame
-        ).pack()
+def openInstallFolder(event=None):
+    startfile(recordingsDirectory)
 
+
+def createRecordingsTable(recordings):
+    recordingsTable = Treeview(
+        master=demo_list_frame
+    )
+    
+    recordingsTable['columns'] = ('filename')
+
+    recordingsTable.column("#0", width=0,  stretch="NO")
+    recordingsTable.column("filename",anchor="center", width=80)
+
+    recordingsTable.heading("#0",text="",anchor="center")
+    recordingsTable.heading("filename",text="Recording Filename",anchor="center")
+
+    recordingsCounter = 0
+    for recording in recordings:
+
+        recordingsTable.insert(
+            parent='',
+            index='end',
+            iid=recordingsCounter,
+            values=(recording)
+            )
+        recordingsCounter += 1
+
+    recordingsTable.pack(fill=X)
+
+    open_install_button.pack()
+    open_install_button.bind("<Button 1>", openInstallFolder)
 
 # Initialiase variables and attempt to find the installation
-installDirectory = None
+installDirectory = None #Set a default value
+
 scanDefaultDirs()
+
 if(installDirectory):
-    getRecordings()
+    recordings = getRecordings()
+
+if(recordingsDirectory):
+    open_install_button.pack()
+    open_install_button.bind("<Button 1>", openInstallFolder)
 
 # Add event listeners
 locate_install_button.bind("<Button-1>", askInstallDir)
-
 
 # Run window main loop to listen for events until close
 # (This should be the last line)

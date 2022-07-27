@@ -8,10 +8,11 @@ border_effects = {
     "ridge": tk.RIDGE,
 }
 
-#Create main window
+# Create main window
 mainWindow = tk.Tk()
 mainWindow.title("DemoRecord Viewer by JoystickJoshy")
 mainWindow.geometry("600x720")
+mainWindow.minsize(600, 600)
 mainWindow.columnconfigure(0, weight=1, minsize=75)
 mainWindow.rowconfigure([0, 1], weight=1, minsize=50)
 
@@ -26,8 +27,9 @@ bottom_info_frame = tk.Frame(
 
 # Create text
 welcome_label = tk.Label(
-    text = "Welcome to the DemoRecord Viewer",
-    master = welcome_frame
+    text = "Welcome to the DemoRecord Viewer!",
+    master = welcome_frame,
+    font=('Arial', 25)
 )
 welcome_label.pack()
 
@@ -47,28 +49,35 @@ locate_install_button = tk.Button(
 )
 locate_install_button.pack()
 
+open_install_button = tk.Button(
+    text = "Open Install Folder",
+    width = 20,
+    height = 2,
+    master = controls_frame
+)
+
 # Grid positioning for frames
 welcome_frame.grid(
     row=0, 
     column=0, 
     padx=10, 
-    pady=10,
-    sticky="new",
+    pady=3,
+    sticky="ew",
 )
 
 demo_list_frame.grid(
     row=1,
     column=0,
     padx=5, 
-    pady=5,
-    sticky="ew",
+    pady=3,
+    sticky="new",
 )
 
 controls_frame.grid(
     row=2,
     column=0,
     padx=5, 
-    pady=5,
+    pady=3,
     sticky="ew",
 )
 
@@ -76,6 +85,6 @@ bottom_info_frame.grid(
     row = 3,
     column = 0,
     padx=5, 
-    pady=5,
+    pady=3,
     sticky="sew",
 )
