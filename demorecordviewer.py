@@ -1,88 +1,69 @@
-from PyQt5 import QtGui
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QLabel, QPushButton, QVBoxLayout, QWidget, QDialog
+from gettext import install
 from pathlib import Path
 from os import listdir
-import sys
-
-# Create the Qt App
-app = QApplication(sys.argv)
-
-# Initialise variables
-installDirectory = ""
+from tkinter import filedialog
+from ui import *
 
 # Define functions
-def askInstallDir():
+
+def scanDefaultDirs():
+    '''Iterates over the provided list to see if the file location exists.'''
+
+    # Create a list of possible locations using the current drive letter
+    currentDrive = Path.home().drive
+
+    possibleLocations = []
+    possibleLocations.append(currentDrive + "\\Program Files (x86)\Star Trek Online_en\\")
+
+    for location in possibleLocations:
+        thisLocation = Path(location)
+        if thisLocation.exists():
+            print("Install folder exists.")
+            global installDirectory
+            installDirectory = thisLocation
+            current_install_label.configure(text="Install location found: " + str(installDirectory))
+
+def getRecordings():
+    global recordingsDirectory
+    recordingsDirectory = Path(str(installDirectory) + "\Star Trek Online\Live\demos")
+    print("Trying to access " + str(recordingsDirectory))
+    try:
+        recordingsList = listdir(recordingsDirectory)
+        updateRecordingslist(recordingsList)
+        return recordingsList
+    except:
+        print("The demorecord folder was not found")
+        return None
+
+def askInstallDir(event=None):
     '''Opens a directory selection dialog. If demos folder is found it sets the installDirectory and recordingsDirectory respectively.'''
-    installDirectory = str(QFileDialog.getExistingDirectory(window, "Select Star Trek Online install folder"))
-    recordingsDirectory = installDirectory + "/Star Trek Online/Live/demos"
+    global installDirectory
+    installDirectory = filedialog.askdirectory()
+    getRecordings()
 
-    if (recordingsDirectory):
-        try:
-            recordingsList = listdir(recordingsDirectory)
-            print(recordingsList)
-        except:
-            print("The demorecord folder was not found")
-            notFoundError.exec()
+def updateRecordingslist(recordingsList):
+    recordingsHeader = tk.Label (
+        text = "The following recordings were found:",
+        master = demo_list_frame
+    )
+    recordingsHeader.pack()
+    for recording in recordingsList:
+        tk.Label(
+            text = recording,
+            master = demo_list_frame
+        ).pack()
 
-# Create layout for main window
-button = QPushButton("Find Game Directory")
-welcomeMessage = QLabel("Welcome to the DemoRecord Viewer")
 
-# Create layout and add widgets
-mainLayout = QVBoxLayout()
-mainLayout.addWidget(welcomeMessage)
-mainLayout.addWidget(button)
-button.clicked.connect(askInstallDir)
+# Initialiase variables and attempt to find the installation
+installDirectory = None
+scanDefaultDirs()
+if(installDirectory):
+    getRecordings()
 
-# Create main window
-class MainWindow(QMainWindow):
-    def __init__(self, parent=None):
-        super(MainWindow, self).__init__(parent)
+# Add event listeners
+locate_install_button.bind("<Button-1>", askInstallDir)
 
-        self.setGeometry(300, 300, 600, 400)
-        self.setWindowTitle("DemoRecord Viewer")
-        self.show()
 
-        widgetContainer = QWidget(self)
-        self.setCentralWidget(widgetContainer)
-        widgetContainer.setLayout(mainLayout)
-
-window = MainWindow()
-
-# Create error window for later
-class Alert(QDialog):
-    def __init__(self):
-        super(Alert, self).__init__()
-
-# Create layout for error window if directory not found
-notFoundError = Alert()
-notFoundErrorLayout = QVBoxLayout()
-
-alertText = QLabel("The demo recording folder was not found, please try selecting a different location.")
-alertButton = QPushButton("OK")
-alertButton.clicked.connect(notFoundError.close)
-
-notFoundErrorLayout.addWidget(alertText)
-notFoundErrorLayout.addWidget(alertButton)
-
-notFoundError.setLayout(notFoundErrorLayout)
-
-#Attempt to find default paths for game
-currentDrive = Path.home().drive
-possibleLocations = []
-possibleLocations.append(currentDrive + "\Program Files (x86)\Star Trek Online_en\Star Trek Online\Live\demos")
-
-# Iterate over possible locations to check if they exist
-for location in possibleLocations:
-    thisLocation = Path(location)
-    if thisLocation.exists():
-        installDirectory = location
-        print("Demo record folder found automatically!")
-        label = QLabel("Demo record folder found. The location is " + str(installDirectory))
-
-# If install dir not found, open the dialog window to choose it
-if installDirectory == "":
-    askInstallDir()
-
-# Exit the application when last main window closed
-sys.exit(app.exec_())
+# Run window main loop to listen for events until close
+# (This should be the last line)
+mainWindow.mainloop()
